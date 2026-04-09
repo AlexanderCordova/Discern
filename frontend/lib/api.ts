@@ -52,34 +52,11 @@ export async function getDemoContent(): Promise<DemoArticle[]> {
 }
 
 /**
- * Admin login
- */
-export async function adminLogin(password: string): Promise<string> {
-  try {
-    const response = await api.post('/api/admin/login', { password })
-
-    if (!response.data.success) {
-      throw new Error(response.data.error || 'Login failed')
-    }
-
-    return response.data.data.token
-  } catch (error: any) {
-    if (error.response?.data?.error) {
-      throw new Error(error.response.data.error)
-    }
-    throw new Error(error.message || 'Login failed')
-  }
-}
-
-/**
- * Get analytics (admin only)
+ * Get analytics
  */
 export async function getAnalytics(token: string, days: number = 30): Promise<AnalyticsMetrics> {
   const response = await api.get('/api/admin/analytics', {
     params: { days },
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   })
 
   if (!response.data.success) {
@@ -90,14 +67,10 @@ export async function getAnalytics(token: string, days: number = 30): Promise<An
 }
 
 /**
- * Get quick stats (admin only)
+ * Get quick stats
  */
 export async function getAdminStats(token: string): Promise<any> {
-  const response = await api.get('/api/admin/stats', {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  })
+  const response = await api.get('/api/admin/stats')
 
   if (!response.data.success) {
     throw new Error('Failed to load stats')
@@ -107,14 +80,11 @@ export async function getAdminStats(token: string): Promise<any> {
 }
 
 /**
- * Get advanced statistical analysis (admin only)
+ * Get advanced statistical analysis
  */
 export async function getAdvancedStats(token: string, days: number = 30): Promise<any> {
   const response = await api.get('/api/admin/advanced-stats', {
     params: { days },
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
   })
 
   if (!response.data.success) {
@@ -122,11 +92,4 @@ export async function getAdvancedStats(token: string, days: number = 30): Promis
   }
 
   return response.data.data
-}
-
-/**
- * Export analytics as CSV
- */
-export function getExportUrl(token: string, days: number = 30): string {
-  return `${API_URL}/api/admin/export?days=${days}&token=${token}`
 }

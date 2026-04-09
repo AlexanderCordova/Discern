@@ -11,7 +11,7 @@ export default function AdvancedStats({ stats }: { stats: any }) {
     )
   }
 
-  const { descriptiveStats, confidenceInterval95, correlationMatrix, factorCorrelations, rSquared, hypothesisTests, outliers, sampleSize } = stats
+  const { descriptiveStats, confidenceInterval95, correlationMatrix, factorCorrelations, rSquared, hypothesisTests, sampleSize } = stats
 
   return (
     <div className="space-y-6">
@@ -184,34 +184,6 @@ export default function AdvancedStats({ stats }: { stats: any }) {
         </div>
       )}
 
-      {/* Outliers */}
-      {outliers && outliers.length > 0 && (
-        <div className="bg-white rounded-xl shadow-lg p-6 border border-gray-200">
-          <h3 className="text-xl font-bold text-gray-900 mb-4">⚠️ Statistical Outliers (|z| &gt; 2)</h3>
-          <p className="text-sm text-gray-600 mb-4">
-            Articles with credibility scores that deviate significantly from the mean
-          </p>
-          <div className="space-y-2">
-            {outliers.slice(0, 5).map((outlier: any) => (
-              <div key={outlier.id} className="bg-red-50 border border-red-200 rounded-lg p-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {outlier.domain || 'Unknown source'}
-                    </p>
-                    <p className="text-xs text-gray-500">Analysis ID: {outlier.id.substring(0, 8)}...</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="text-lg font-bold text-red-600">Score: {outlier.score}</p>
-                    <p className="text-sm text-gray-600">z-score: {outlier.zScore.toFixed(2)}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Reference Guide */}
       <div className="bg-gradient-to-r from-gray-50 to-gray-100 rounded-xl shadow-lg p-6 border border-gray-300">
         <h3 className="text-lg font-bold text-gray-900 mb-3">📊 Interpreting the Data</h3>
@@ -239,14 +211,6 @@ export default function AdvancedStats({ stats }: { stats: any }) {
               <li>&gt;0.5: Right-skewed distribution</li>
               <li>-0.5 to 0.5: Normal distribution</li>
               <li>&lt;-0.5: Left-skewed distribution</li>
-            </ul>
-          </div>
-          <div>
-            <p className="font-semibold mb-1">Outlier Detection:</p>
-            <ul className="list-disc list-inside space-y-1 text-xs">
-              <li>|z| &gt; 3: Extreme anomaly</li>
-              <li>|z| &gt; 2: Significant deviation</li>
-              <li>|z| &lt; 2: Normal variation</li>
             </ul>
           </div>
         </div>

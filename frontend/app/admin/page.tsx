@@ -1,57 +1,29 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { adminLogin, getAnalytics, getAdminStats, getAdvancedStats } from '@/lib/api'
+import { getAnalytics, getAdminStats, getAdvancedStats } from '@/lib/api'
 import { AnalyticsMetrics } from '@discern/shared/types'
 import AnalyticsCharts from '@/components/AnalyticsCharts'
 import AdvancedStats from '@/components/AdvancedStats'
 
 export default function AdminPage() {
-  const [authenticated, setAuthenticated] = useState(false)
-  const [password, setPassword] = useState('')
-  const [token, setToken] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-
   const [analytics, setAnalytics] = useState<AnalyticsMetrics | null>(null)
   const [stats, setStats] = useState<any>(null)
   const [advancedStats, setAdvancedStats] = useState<any>(null)
   const [days, setDays] = useState(30)
+  const [searchQuery, setSearchQuery] = useState('')
 
   useEffect(() => {
-    // Check if already authenticated
-    const savedToken = localStorage.getItem('admin_token')
-    if (savedToken) {
-      setToken(savedToken)
-      setAuthenticated(true)
-      loadData(savedToken)
-    }
+    loadData()
   }, [])
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    try {
-      const token = await adminLogin(password)
-      setToken(token)
-      setAuthenticated(true)
-      localStorage.setItem('admin_token', token)
-      await loadData(token)
-    } catch (err: any) {
-      setError(err.message || 'Login failed')
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const loadData = async (authToken: string, selectedDays: number = 30) => {
+  const loadData = async (selectedDays: number = 30) => {
     try {
       const [analyticsData, statsData, advancedStatsData] = await Promise.all([
-        getAnalytics(authToken, selectedDays),
-        getAdminStats(authToken),
-        getAdvancedStats(authToken, selectedDays),
+        getAnalytics('', selectedDays),
+        getAdminStats(''),
+        getAdvancedStats('', selectedDays),
       ])
 
       setAnalytics(analyticsData)
@@ -62,97 +34,17 @@ export default function AdminPage() {
     }
   }
 
-  const handleLogout = () => {
-    setAuthenticated(false)
-    setToken(null)
-    setAnalytics(null)
-    setStats(null)
-    localStorage.removeItem('admin_token')
-  }
-
-  const handleExport = () => {
-    if (token) {
-      window.open(
-        `${process.env.NEXT_PUBLIC_API_URL}/api/admin/export?days=${days}&token=${token}`,
-        '_blank'
-      )
-    }
-  }
-
-  if (!authenticated) {
-    return (
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 bg-gray-50">
-        <div className="max-w-md w-full">
-          <div className="bg-white rounded-xl shadow-lg p-8 border border-gray-200">
-            <div className="text-center mb-8">
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
-                Platform Statistics
-              </h1>
-              <p className="text-gray-600">Enter access code to continue</p>
-            </div>
-
-            <form onSubmit={handleLogin}>
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Access Code
-                </label>
-                <input
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none"
-                  placeholder="Enter access code"
-                  required
-                />
-              </div>
-
-              {error && (
-                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-sm text-red-800">{error}</p>
-                </div>
-              )}
-
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full px-6 py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 transition disabled:bg-gray-300"
-              >
-                {loading ? 'Authenticating...' : 'Login'}
-              </button>
-            </form>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="min-h-screen py-12 px-4 bg-gray-50">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">
-              Platform Statistics
-            </h1>
-            <p className="text-gray-600">
-              Analytics and insights for DISCERN platform
-            </p>
-          </div>
-          <div className="flex gap-3">
-            <button
-              onClick={handleExport}
-              className="px-6 py-3 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 transition"
-            >
-              Export CSV
-            </button>
-            <button
-              onClick={handleLogout}
-              className="px-6 py-3 bg-gray-600 text-white font-medium rounded-lg hover:bg-gray-700 transition"
-            >
-              Logout
-            </button>
-          </div>
+        <div className="mb-8">
+          <h1 className="text-4xl font-bold text-gray-900 mb-2">
+            Platform Statistics
+          </h1>
+          <p className="text-gray-600">
+            Analytics and insights for DISCERN platform
+          </p>
         </div>
 
         {/* Time Range Selector */}
@@ -165,7 +57,7 @@ export default function AdminPage() {
             onChange={(e) => {
               const newDays = parseInt(e.target.value)
               setDays(newDays)
-              if (token) loadData(token, newDays)
+              loadData(newDays)
             }}
             className="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
           >
@@ -174,6 +66,61 @@ export default function AdminPage() {
             <option value={90}>Last 90 days</option>
           </select>
         </div>
+
+        {/* Search Sources */}
+        {analytics && analytics.topDomains && analytics.topDomains.length > 0 && (
+          <div className="mb-8 bg-white rounded-xl shadow-lg p-6 border border-gray-200">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Search Sources</h2>
+            <input
+              type="text"
+              placeholder="Search for a source..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none mb-4"
+            />
+
+            <div className="space-y-2 max-h-96 overflow-y-auto">
+              {analytics.topDomains
+                .filter((domain) =>
+                  domain.domain.toLowerCase().includes(searchQuery.toLowerCase())
+                )
+                .map((domain, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition"
+                  >
+                    <div className="flex-1">
+                      <p className="text-lg font-semibold text-gray-900">{domain.domain}</p>
+                      <p className="text-sm text-gray-600">
+                        Analyzed {domain.count} time{domain.count !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-sm text-gray-600">Average Score</p>
+                      <p
+                        className={`text-2xl font-bold ${
+                          domain.averageScore >= 80
+                            ? 'text-green-600'
+                            : domain.averageScore >= 50
+                            ? 'text-yellow-600'
+                            : 'text-red-600'
+                        }`}
+                      >
+                        {domain.averageScore.toFixed(1)}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              {analytics.topDomains.filter((domain) =>
+                domain.domain.toLowerCase().includes(searchQuery.toLowerCase())
+              ).length === 0 && (
+                <p className="text-center text-gray-500 py-8">
+                  No sources found matching "{searchQuery}"
+                </p>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Quick Stats */}
         {stats && (
