@@ -16,40 +16,7 @@ router.get('/analytics', adminAuth, async (req: Request, res: Response) => {
 
     logger.info('Admin analytics requested', { days });
 
-    // Hardcoded analytics for charts
-    const analytics = {
-      totalAnalyses: 347,
-      averageScore: 67.8,
-      scoreDistribution: {
-        low: 66,
-        medium: 195,
-        high: 86,
-      },
-      contentTypeBreakdown: {
-        url: 240,
-        text: 65,
-        pdf: 42,
-      },
-      topDomains: [
-        { domain: 'foxnews.com', count: 28, averageScore: 68 },
-        { domain: 'cnn.com', count: 26, averageScore: 74 },
-        { domain: 'nytimes.com', count: 24, averageScore: 82 },
-        { domain: 'reuters.com', count: 22, averageScore: 88 },
-        { domain: 'bbc.com', count: 20, averageScore: 85 },
-        { domain: 'washingtonpost.com', count: 18, averageScore: 81 },
-        { domain: 'theguardian.com', count: 16, averageScore: 79 },
-        { domain: 'medium.com', count: 14, averageScore: 62 },
-        { domain: 'buzzfeed.com', count: 12, averageScore: 58 },
-        { domain: 'infowars.com', count: 10, averageScore: 28 },
-      ],
-      dailyAnalyses: [
-        { date: '2026-04-03', count: 85 },
-        { date: '2026-04-04', count: 88 },
-        { date: '2026-04-05', count: 91 },
-        { date: '2026-04-06', count: 83 },
-      ],
-      lowCredibilityCount: 66,
-    };
+    const analytics = await database.getAnalytics(days);
 
     res.json({
       success: true,
@@ -74,12 +41,13 @@ router.get('/stats', adminAuth, async (req: Request, res: Response) => {
   try {
     const analytics = await database.getAnalytics(7); // Last 7 days
 
-    // Hardcoded stats to show full data
     const stats = {
-      totalScans: 347,
-      averageScore: 67.8,
-      lowCredibilityPercentage: 19,
-      topFlaggedSource: 'foxnews.com',
+      totalScans: analytics.totalAnalyses,
+      averageScore: analytics.averageScore,
+      lowCredibilityPercentage: analytics.totalAnalyses > 0
+        ? Math.round((analytics.lowCredibilityCount / analytics.totalAnalyses) * 100)
+        : 0,
+      topFlaggedSource: analytics.topDomains[0]?.domain || 'N/A',
     };
 
     res.json({
@@ -107,70 +75,7 @@ router.get('/advanced-stats', adminAuth, async (req: Request, res: Response) => 
 
     logger.info('Advanced stats requested', { days });
 
-    // Hardcoded advanced stats for detailed analytics
-    const advancedStats = {
-      descriptiveStats: {
-        mean: 67.8,
-        median: 68,
-        mode: 70,
-        stdDev: 15.2,
-        variance: 231.04,
-        min: 15,
-        max: 95,
-        range: 80,
-        q1: 58,
-        q3: 79,
-        iqr: 21,
-        skewness: -0.15,
-      },
-      confidenceInterval95: {
-        lower: 66.2,
-        upper: 69.4,
-        marginOfError: 1.6,
-      },
-      factorAverages: {
-        neutrality: 16.8,
-        sourceReputation: 17.2,
-        evidence: 16.5,
-        logic: 17.3,
-      },
-      factorStdDev: {
-        neutrality: 4.2,
-        sourceReputation: 4.8,
-        evidence: 4.5,
-        logic: 4.1,
-      },
-      correlationMatrix: {
-        bias_source: 0.72,
-        bias_evidence: 0.68,
-        bias_logic: 0.71,
-        source_evidence: 0.79,
-        source_logic: 0.74,
-        evidence_logic: 0.81,
-      },
-      factorCorrelations: {
-        bias: 0.89,
-        source_reputation: 0.92,
-        evidence: 0.87,
-        logic: 0.91,
-      },
-      rSquared: 0.923,
-      hypothesisTests: {
-        urlVsText: {
-          urlMean: '68.2',
-          textMean: '66.5',
-          difference: '1.7',
-          tStatistic: '1.42',
-          significant: false,
-        },
-      },
-      outliers: [
-        { id: 'outlier-1', score: 95, zScore: 1.78, domain: 'nature.com' },
-        { id: 'outlier-2', score: 15, zScore: -3.47, domain: 'infowars.com' },
-        { id: 'outlier-3', score: 92, zScore: 1.59, domain: 'science.org' },
-      ],
-      sampleSize: 347,
-    };
+    const advancedStats = await database.getAdvancedStats(days);
 
     res.json({
       success: true,
