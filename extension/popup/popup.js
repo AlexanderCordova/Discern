@@ -1,17 +1,102 @@
 const API_URL = 'https://discern-backend-tnxh.onrender.com'
+const WEBSITE_URL = 'https://www.usediscern.com'
 
 const app = document.getElementById('app')
-const analyzeBtn = document.getElementById('analyzeBtn')
 
 // State
 let currentUrl = ''
+let userId = null
 
-// Initialize
+// Initialize - check if user is signed in
 chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   currentUrl = tabs[0].url
 })
 
-analyzeBtn.addEventListener('click', analyzePage)
+chrome.storage.sync.get(['userId'], (result) => {
+  if (result.userId) {
+    userId = result.userId
+    showAnalyzeButton()
+  } else {
+    showSignInPrompt()
+  }
+})
+
+function showSignInPrompt() {
+  app.innerHTML = `
+    <div class="sign-in-prompt">
+      <div class="sign-in-icon">🔒</div>
+      <h2>Sign in required</h2>
+      <p>Sign in to analyze this page and track your credibility checks</p>
+      <button class="btn btn-primary" id="signInBtn">Sign in with Google</button>
+    </div>
+  `
+
+  document.getElementById('signInBtn').addEventListener('click', signIn)
+}
+
+function signIn() {
+  // Open website in new tab for sign-in
+  chrome.tabs.create({
+    url: `${WEBSITE_URL}/api/auth/signin?callbackUrl=/extension-connect`
+  }, () => {
+    // Show waiting state
+    app.innerHTML = `
+      <div class="sign-in-prompt">
+        <div class="spinner"></div>
+        <h2>Waiting for sign-in...</h2>
+        <p>Complete sign-in in the new tab, then click below</p>
+        <button class="btn btn-primary" id="checkAuthBtn">I've Signed In</button>
+      </div>
+    `
+
+    document.getElementById('checkAuthBtn').addEventListener('click', checkAuth)
+  })
+}
+
+async function checkAuth() {
+  try {
+    // Get session from website
+    const response = await fetch(`${WEBSITE_URL}/api/auth/session`, {
+      credentials: 'include'
+    })
+    const session = await response.json()
+
+    if (session?.user?.id) {
+      // Save userId
+      userId = session.user.id
+      chrome.storage.sync.set({ userId }, () => {
+        showAnalyzeButton()
+      })
+    } else {
+      showError('Sign-in not detected. Please try again.')
+    }
+  } catch (error) {
+    showError('Failed to check sign-in status')
+  }
+}
+
+function showAnalyzeButton() {
+  app.innerHTML = `
+    <div class="container">
+      <button id="analyzeBtn" class="analyze-button">
+        Analyze This Page
+      </button>
+      <button class="btn btn-secondary" id="signOutBtn" style="margin-top: 12px; width: 100%;">
+        Sign Out
+      </button>
+    </div>
+  `
+
+  document.getElementById('analyzeBtn').addEventListener('click', analyzePage)
+  document.getElementById('signOutBtn').addEventListener('click', signOut)
+}
+
+function signOut() {
+  chrome.storage.sync.remove('userId', () => {
+    userId = null
+    showSignInPrompt()
+  })
+}
 
 async function analyzePage() {
   try {
@@ -30,6 +115,7 @@ async function analyzePage() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'x-user-id': userId,
       },
       body: JSON.stringify({
         type: 'url',
