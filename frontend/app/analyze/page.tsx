@@ -60,7 +60,7 @@ function AnalyzeContent() {
         demoMode: false,
         explainabilityMode: false,
         analysisMode: analysisMode || 'brief',
-      })
+      }, session?.user?.id)
 
       clearInterval(stepInterval)
       setResult(data)

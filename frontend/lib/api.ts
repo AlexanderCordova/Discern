@@ -30,9 +30,22 @@ api.interceptors.request.use(async (config) => {
 /**
  * Analyze content for credibility
  */
-export async function analyzeContent(request: AnalysisRequest): Promise<AnalysisResult> {
+export async function analyzeContent(request: AnalysisRequest, userId?: string): Promise<AnalysisResult> {
   try {
-    const response = await api.post('/api/analyze', request)
+    const headers: any = {}
+
+    // Add userId if provided
+    if (userId) {
+      headers['x-user-id'] = userId
+    }
+
+    // Add access code if present
+    const accessCode = localStorage.getItem('discern_access_code')
+    if (accessCode) {
+      headers['x-api-key'] = accessCode
+    }
+
+    const response = await api.post('/api/analyze', request, { headers })
 
     if (!response.data.success) {
       throw new Error(response.data.error || 'Analysis failed')
