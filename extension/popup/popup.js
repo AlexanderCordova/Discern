@@ -12,11 +12,16 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   currentUrl = tabs[0].url
 })
 
+console.log('Extension popup loaded')
+
 chrome.storage.sync.get(['userId'], (result) => {
+  console.log('Storage result:', result)
   if (result.userId) {
+    console.log('User ID found:', result.userId)
     userId = result.userId
     showAnalyzeButton()
   } else {
+    console.log('No user ID found, showing sign-in prompt')
     showSignInPrompt()
   }
 })
