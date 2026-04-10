@@ -1,13 +1,8 @@
 import { NextAuthOptions } from 'next-auth'
 import GoogleProvider from 'next-auth/providers/google'
 import AppleProvider from 'next-auth/providers/apple'
-import { PrismaAdapter } from '@next-auth/prisma-adapter'
-import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
 
 export const authOptions: NextAuthOptions = {
-  adapter: PrismaAdapter(prisma),
   providers: [
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID || '',
@@ -19,27 +14,30 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
-    async session({ session, user }) {
+    async jwt({ token, user, account, profile }) {
+      // Add user info to JWT token on first sign in
+      if (user) {
+        token.id = user.id
+        token.email = user.email
+        token.name = user.name
+        token.picture = user.image
+      }
+      return token
+    },
+    async session({ session, token }) {
+      // Add user ID from JWT token to session
       if (session.user) {
-        session.user.id = user.id
+        session.user.id = token.id as string
+        session.user.email = token.email as string
+        session.user.name = token.name as string
+        session.user.image = token.picture as string
       }
       return session
     },
-    async signIn({ user, account, profile }) {
-      // Update lastActiveAt whenever user signs in
-      await prisma.user.update({
-        where: { id: user.id },
-        data: { lastActiveAt: new Date() },
-      })
-      return true
-    },
-  },
-  pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error',
   },
   session: {
-    strategy: 'database',
+    strategy: 'jwt',
     maxAge: 30 * 24 * 60 * 60, // 30 days
   },
+  secret: process.env.NEXTAUTH_SECRET,
 }
