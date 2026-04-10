@@ -101,6 +101,53 @@ router.get('/history', userAuth, async (req: Request, res: Response) => {
 });
 
 /**
+ * GET /api/user/debug
+ * Debug endpoint to check user data
+ */
+router.get('/debug', userAuth, async (req: Request, res: Response) => {
+  try {
+    const userId = (req as any).userId;
+
+    logger.info('Debug request', { userId });
+
+    // Get all analyses for this user
+    const allAnalyses = await database.getUserHistory(userId, 1000, 0);
+
+    // Get recent analyses with any userId
+    const recentAll = await database.getAllAnalyses(7);
+
+    res.json({
+      success: true,
+      data: {
+        yourUserId: userId,
+        yourAnalysesCount: allAnalyses.length,
+        yourRecentAnalyses: allAnalyses.slice(0, 5).map((a: any) => ({
+          id: a.id,
+          score: a.score,
+          userId: a.userId,
+          createdAt: a.createdAt,
+          domain: a.domain,
+        })),
+        allRecentAnalyses: recentAll.slice(0, 10).map((a: any) => ({
+          id: a.id,
+          score: a.score,
+          userId: a.userId,
+          createdAt: a.createdAt,
+          domain: a.domain,
+        })),
+      },
+    });
+  } catch (error: any) {
+    logger.error('Debug failed', { error });
+
+    res.status(500).json({
+      success: false,
+      error: error.message,
+    });
+  }
+});
+
+/**
  * GET /api/user/export
  * Export user's data as CSV
  */
