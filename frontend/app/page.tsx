@@ -248,7 +248,7 @@ export default function Home() {
               Start analyzing today.
             </h2>
             <p className="text-xl text-[#6e6e73] mb-12">
-              No account needed. Get 5 free evaluations daily.
+              Create a free account to get 3 free analyses per day and track your search history.
             </p>
 
             <Link

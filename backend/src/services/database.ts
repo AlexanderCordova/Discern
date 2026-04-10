@@ -400,7 +400,7 @@ export class DatabaseService {
   }
 
   /**
-   * Get user's analysis count in last 24 hours (for rate limiting)
+   * Get user's analysis count in last 24 hours (for rate limiting by IP)
    */
   async getUserAnalysisCount(ipAddress: string): Promise<number> {
     try {
@@ -417,6 +417,28 @@ export class DatabaseService {
       return count;
     } catch (error) {
       logger.error('Failed to get user analysis count', { error, ipAddress });
+      return 0; // Fail open - allow analysis if count check fails
+    }
+  }
+
+  /**
+   * Get user's analysis count in last 24 hours by userId (for rate limiting)
+   */
+  async getUserAnalysisCountByUserId(userId: string): Promise<number> {
+    try {
+      const oneDayAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+
+      const count = await prisma.analysis.count({
+        where: {
+          userId,
+          createdAt: { gte: oneDayAgo },
+          demoMode: false,
+        },
+      });
+
+      return count;
+    } catch (error) {
+      logger.error('Failed to get user analysis count by userId', { error, userId });
       return 0; // Fail open - allow analysis if count check fails
     }
   }

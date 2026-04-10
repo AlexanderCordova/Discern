@@ -31,7 +31,7 @@ export default function UserNav() {
     return (
       <button
         onClick={() => signIn()}
-        className="px-4 py-2 text-sm font-medium text-white bg-[#0071e3] rounded-full hover:bg-[#0077ed] transition-all duration-200"
+        className="px-6 py-3 text-base font-semibold text-white bg-[#0071e3] rounded-full hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] shadow-lg"
       >
         Sign In
       </button>
@@ -78,6 +78,14 @@ export default function UserNav() {
             onClick={() => setShowMenu(false)}
           >
             Search History
+          </Link>
+
+          <Link
+            href="/settings"
+            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+            onClick={() => setShowMenu(false)}
+          >
+            Account Settings
           </Link>
 
           <div className="border-t border-gray-100 my-1" />

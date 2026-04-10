@@ -30,33 +30,37 @@ router.post('/', async (req: Request, res: Response) => {
 
     const { type, content, demoMode, explainabilityMode, analysisMode } = request;
 
+    // Extract user ID from request header (required for authentication)
+    const userId = req.get('x-user-id');
+
+    // Require authentication
+    if (!userId) {
+      logger.warn('Analysis request without authentication');
+      return res.status(401).json({
+        success: false,
+        error: 'Authentication required. Please sign in to analyze content.',
+      });
+    }
+
     logger.info('Analysis request received', {
       type,
       demoMode,
       explainabilityMode,
       analysisMode,
       contentLength: content.length,
+      userId,
     });
 
-    // Rate limit check for non-admin users (10 analyses per day)
-    // Skip rate limiting for admin users
-    const isAdmin = req.headers.authorization === process.env.ADMIN_PASSWORD ||
-                    req.headers.authorization === 'admin-authenticated';
+    // Rate limit check (3 analyses per day per user)
+    const dailyLimit = 3;
+    const analysisCount = await database.getUserAnalysisCountByUserId(userId);
 
-    if (!isAdmin) {
-      const userIp = req.ip || 'unknown';
-      const dailyLimit = parseInt(process.env.DAILY_ANALYSIS_LIMIT || '10');
-      const analysisCount = await database.getUserAnalysisCount(userIp);
-
-      if (analysisCount >= dailyLimit) {
-        logger.warn('Rate limit exceeded', { ip: userIp, count: analysisCount });
-        return res.status(429).json({
-          success: false,
-          error: `Daily limit reached. You can analyze up to ${dailyLimit} articles per day. Try again tomorrow or contact admin for increased access.`,
-        });
-      }
-    } else {
-      logger.info('Admin user - skipping rate limit');
+    if (analysisCount >= dailyLimit) {
+      logger.warn('Rate limit exceeded', { userId, count: analysisCount });
+      return res.status(429).json({
+        success: false,
+        error: `Daily limit reached. You can analyze up to ${dailyLimit} articles per day. Try again tomorrow.`,
+      });
     }
 
     // Check cache first (if not in demo or explainability mode)
@@ -118,9 +122,6 @@ router.post('/', async (req: Request, res: Response) => {
     );
 
     const processingTime = Date.now() - startTime;
-
-    // Extract user ID from request header (if user is logged in)
-    const userId = req.get('x-user-id') || undefined;
 
     // Save to database (optional, continue if fails)
     try {
