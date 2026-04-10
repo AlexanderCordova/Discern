@@ -16,6 +16,7 @@ import { requestLogger } from './middleware/requestLogger';
 // Import routes
 import analyzeRoutes from './api/analyze';
 import adminRoutes from './api/admin';
+import userRoutes from './api/user';
 import healthRoutes from './api/health';
 import feedbackRoutes from './api/feedback';
 
@@ -54,6 +55,7 @@ app.use(requestLogger);
 app.use('/api/health', healthRoutes);
 app.use('/api/analyze', analyzeRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/user', userRoutes);
 app.use('/api/feedback', feedbackRoutes);
 
 // Error handling

@@ -119,6 +119,9 @@ router.post('/', async (req: Request, res: Response) => {
 
     const processingTime = Date.now() - startTime;
 
+    // Extract user ID from request header (if user is logged in)
+    const userId = req.get('x-user-id') || undefined;
+
     // Save to database (optional, continue if fails)
     try {
       const analysisId = await database.saveAnalysis(type, content, result, {
@@ -128,6 +131,7 @@ router.post('/', async (req: Request, res: Response) => {
         userAgent: req.get('user-agent'),
         domain,
         processingTime,
+        userId,
       });
       result.id = analysisId;
     } catch (error) {

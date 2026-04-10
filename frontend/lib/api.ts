@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { AnalysisRequest, AnalysisResult, AnalyticsMetrics, DemoArticle } from '@discern/shared/types'
+import { getSession } from 'next-auth/react'
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -8,6 +9,15 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+})
+
+// Add interceptor to include user ID in requests if logged in
+api.interceptors.request.use(async (config) => {
+  const session = await getSession()
+  if (session?.user?.id) {
+    config.headers['x-user-id'] = session.user.id
+  }
+  return config
 })
 
 /**
