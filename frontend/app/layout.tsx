@@ -30,15 +30,15 @@ export default function RootLayout({
                   <img
                     src="/logo.png"
                     alt="DISCERN Logo"
-                    className="h-20 w-auto object-contain m-0 p-0"
+                    className="h-12 sm:h-16 md:h-20 w-auto object-contain m-0 p-0"
                   />
                 </a>
 
                 {/* Navigation Links */}
-                <div className="flex items-center gap-3 sm:gap-6 md:gap-8">
+                <div className="flex items-center gap-2 sm:gap-4 md:gap-6 lg:gap-8">
                   <a
                     href="/"
-                    className="text-xs sm:text-sm font-medium text-[#1d1d1f] hover:text-[#0071e3] transition-colors duration-200"
+                    className="hidden sm:block text-xs sm:text-sm font-medium text-[#1d1d1f] hover:text-[#0071e3] transition-colors duration-200"
                   >
                     Home
                   </a>
@@ -50,7 +50,7 @@ export default function RootLayout({
                   </a>
                   <a
                     href="/about"
-                    className="text-xs sm:text-sm font-medium text-[#1d1d1f] hover:text-[#0071e3] transition-colors duration-200"
+                    className="hidden md:block text-xs sm:text-sm font-medium text-[#1d1d1f] hover:text-[#0071e3] transition-colors duration-200"
                   >
                     About
                   </a>

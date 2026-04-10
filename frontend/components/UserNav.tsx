@@ -31,7 +31,7 @@ export default function UserNav() {
     return (
       <button
         onClick={() => signIn()}
-        className="px-6 py-3 text-base font-semibold text-white bg-[#0071e3] rounded-full hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] shadow-lg"
+        className="px-3 py-2 sm:px-6 sm:py-3 text-sm sm:text-base font-semibold text-white bg-[#0071e3] rounded-full hover:bg-[#0077ed] transition-all duration-200 hover:scale-[1.02] shadow-lg whitespace-nowrap"
       >
         Sign In
       </button>
