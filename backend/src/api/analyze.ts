@@ -81,6 +81,11 @@ router.post('/', async (req: Request, res: Response) => {
 
           // Save cached result to current user's history
           const saveUserId = userId || (isAdmin ? 'admin' : undefined);
+          logger.info('Cache hit - attempting to save to user history', {
+            saveUserId,
+            hasUserId: !!userId,
+            isAdmin
+          });
           if (saveUserId) {
             try {
               await database.saveAnalysis(type, content, cached, {
@@ -93,8 +98,12 @@ router.post('/', async (req: Request, res: Response) => {
                 userId: saveUserId,
               });
               logger.info('Cached analysis saved to user history', { userId: saveUserId });
-            } catch (saveError) {
-              logger.warn('Failed to save cached analysis to user history, continuing');
+            } catch (saveError: any) {
+              logger.error('Failed to save cached analysis', {
+                error: saveError.message,
+                code: saveError.code,
+                userId: saveUserId
+              });
             }
           }
 
@@ -156,6 +165,12 @@ router.post('/', async (req: Request, res: Response) => {
     // Use userId if present, otherwise 'admin' for admin key users
     const saveUserId = userId || (isAdmin ? 'admin' : undefined);
 
+    logger.info('Attempting to save analysis', {
+      saveUserId,
+      hasUserId: !!userId,
+      isAdmin
+    });
+
     try {
       const analysisId = await database.saveAnalysis(type, content, result, {
         demoMode,
@@ -167,8 +182,13 @@ router.post('/', async (req: Request, res: Response) => {
         userId: saveUserId,
       });
       result.id = analysisId;
-    } catch (error) {
-      logger.warn('Failed to save to database, continuing without saving');
+      logger.info('Analysis saved successfully', { analysisId, userId: saveUserId });
+    } catch (error: any) {
+      logger.error('Failed to save to database', {
+        error: error.message,
+        code: error.code,
+        userId: saveUserId
+      });
       result.id = 'temp-' + Date.now();
     }
 
