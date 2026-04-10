@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
-    "start": "npx prisma migrate deploy && node dist/index.js",
+    "start": "npx prisma migrate resolve --rolled-back 20260410_update_userid_to_string --schema=prisma/schema.prisma && npx prisma migrate deploy --schema=prisma/schema.prisma && node dist/index.js",
     "db:migrate": "node scripts/migrate.js",
     "db:seed": "node scripts/seed.js",
     "test": "jest"
