@@ -30,11 +30,15 @@ router.post('/', async (req: Request, res: Response) => {
 
     const { type, content, demoMode, explainabilityMode, analysisMode } = request;
 
-    // Extract user ID from request header (required for authentication)
+    // Check for admin API key (bypasses authentication and rate limiting)
+    const apiKey = req.get('x-api-key');
+    const isAdmin = apiKey && apiKey === process.env.ADMIN_API_KEY;
+
+    // Extract user ID from request header (required for authentication unless admin)
     const userId = req.get('x-user-id');
 
-    // Require authentication
-    if (!userId) {
+    // Require authentication (unless admin key provided)
+    if (!isAdmin && !userId) {
       logger.warn('Analysis request without authentication');
       return res.status(401).json({
         success: false,
@@ -48,19 +52,24 @@ router.post('/', async (req: Request, res: Response) => {
       explainabilityMode,
       analysisMode,
       contentLength: content.length,
-      userId,
+      userId: userId || 'admin',
+      isAdmin,
     });
 
-    // Rate limit check (3 analyses per day per user)
-    const dailyLimit = 3;
-    const analysisCount = await database.getUserAnalysisCountByUserId(userId);
+    // Rate limit check (3 analyses per day per user, skip for admin)
+    if (!isAdmin && userId) {
+      const dailyLimit = 3;
+      const analysisCount = await database.getUserAnalysisCountByUserId(userId);
 
-    if (analysisCount >= dailyLimit) {
-      logger.warn('Rate limit exceeded', { userId, count: analysisCount });
-      return res.status(429).json({
-        success: false,
-        error: `Daily limit reached. You can analyze up to ${dailyLimit} articles per day. Try again tomorrow.`,
-      });
+      if (analysisCount >= dailyLimit) {
+        logger.warn('Rate limit exceeded', { userId, count: analysisCount });
+        return res.status(429).json({
+          success: false,
+          error: `Daily limit reached. You can analyze up to ${dailyLimit} articles per day. Try again tomorrow.`,
+        });
+      }
+    } else if (isAdmin) {
+      logger.info('Admin API key - skipping rate limit');
     }
 
     // Check cache first (if not in demo or explainability mode)
