@@ -40,6 +40,17 @@ function showSignInPrompt() {
 }
 
 function signIn() {
+  // Listen for messages from content script
+  chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+    if (message.action === 'userSignedIn' && message.userId) {
+      console.log('Received userId from website:', message.userId)
+      userId = message.userId
+      chrome.storage.sync.set({ userId }, () => {
+        showAnalyzeButton()
+      })
+    }
+  })
+
   // Open website in new tab for sign-in
   chrome.tabs.create({
     url: `${WEBSITE_URL}/api/auth/signin?callbackUrl=/extension-connect`
@@ -48,36 +59,11 @@ function signIn() {
     app.innerHTML = `
       <div class="sign-in-prompt">
         <div class="spinner"></div>
-        <h2>Waiting for sign-in...</h2>
-        <p>Complete sign-in in the new tab, then click below</p>
-        <button class="btn btn-primary" id="checkAuthBtn">I've Signed In</button>
+        <h2>Sign in to continue</h2>
+        <p>Complete the sign-in in the new tab. This popup will update automatically when you're done.</p>
       </div>
     `
-
-    document.getElementById('checkAuthBtn').addEventListener('click', checkAuth)
   })
-}
-
-async function checkAuth() {
-  try {
-    // Get session from website
-    const response = await fetch(`${WEBSITE_URL}/api/auth/session`, {
-      credentials: 'include'
-    })
-    const session = await response.json()
-
-    if (session?.user?.id) {
-      // Save userId
-      userId = session.user.id
-      chrome.storage.sync.set({ userId }, () => {
-        showAnalyzeButton()
-      })
-    } else {
-      showError('Sign-in not detected. Please try again.')
-    }
-  } catch (error) {
-    showError('Failed to check sign-in status')
-  }
 }
 
 function showAnalyzeButton() {

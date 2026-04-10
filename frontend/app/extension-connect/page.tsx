@@ -15,12 +15,21 @@ export default function ExtensionConnectPage() {
     }
   }, [status, router])
 
-  const handleCopyAndClose = () => {
-    setCopied(true)
-    setTimeout(() => {
-      window.close()
-    }, 1500)
-  }
+  useEffect(() => {
+    // Send userId to extension when signed in
+    if (session?.user?.id) {
+      // Post message to window so content script can pick it up
+      window.postMessage({
+        type: 'DISCERN_USER_SIGNED_IN',
+        userId: session.user.id
+      }, '*')
+
+      // Auto-close tab after 3 seconds
+      setTimeout(() => {
+        window.close()
+      }, 3000)
+    }
+  }, [session])
 
   if (status === 'loading') {
     return (
@@ -51,7 +60,7 @@ export default function ExtensionConnectPage() {
         </h1>
 
         <p className="text-lg text-[#6e6e73] mb-8">
-          Return to the extension popup and click "I've Signed In" to complete the setup.
+          Your extension is now connected. This tab will close automatically in a moment.
         </p>
 
         <div className="bg-white rounded-2xl shadow-lg p-6 mb-6">

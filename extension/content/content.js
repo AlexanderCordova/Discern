@@ -10,6 +10,23 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 })
 
+// Listen for messages from webpage (for sign-in flow)
+window.addEventListener('message', (event) => {
+  // Only accept messages from our domain
+  if (event.origin !== 'https://discern-frontend.vercel.app') {
+    return
+  }
+
+  if (event.data.type === 'DISCERN_USER_SIGNED_IN' && event.data.userId) {
+    console.log('Content script received userId, forwarding to extension:', event.data.userId)
+    // Forward to extension
+    chrome.runtime.sendMessage({
+      action: 'userSignedIn',
+      userId: event.data.userId
+    })
+  }
+})
+
 function showFloatingBadge(score) {
   // Remove existing badge if present
   if (badge) {
