@@ -198,43 +198,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Extension Section */}
-      <section className="py-32 px-6 bg-[#1d1d1f] relative overflow-hidden">
-        {/* Decorative elements */}
-        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
-        <div className="max-w-5xl mx-auto text-center relative z-10">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8 }}
-          >
-            <h2 className="text-5xl md:text-6xl font-semibold text-white mb-6 tracking-tight">
-              Analyze as you browse.
-            </h2>
-            <p className="text-2xl text-[#a1a1a6] mb-12 max-w-2xl mx-auto">
-              The Chrome extension assesses credibilty to every article you read.
-            </p>
-
-            <a
-              href="/discern-extension.zip"
-              download
-              className="inline-flex items-center gap-3 px-8 py-5 bg-white text-[#1d1d1f] text-lg font-medium rounded-full hover:bg-[#f5f5f7] transition-all duration-300 hover:scale-[1.02] shadow-lg"
-            >
-              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-              </svg>
-              Download for Chrome
-            </a>
-
-            <p className="text-sm text-[#86868b] mt-8">
-              Free installation • Privacy-focused
-            </p>
-          </motion.div>
-        </div>
-      </section>
-
       {/* Final CTA */}
       <section className="py-32 px-6 bg-white">
         <div className="max-w-4xl mx-auto text-center">
