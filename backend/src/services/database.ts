@@ -544,8 +544,8 @@ export class DatabaseService {
         },
       });
 
-      if (analyses.length < 2) {
-        return null; // Need at least 2 for meaningful stats
+      if (analyses.length === 0) {
+        return null; // Need at least 1 for stats
       }
 
       // Re-use the same advanced stats logic but for user-specific data
