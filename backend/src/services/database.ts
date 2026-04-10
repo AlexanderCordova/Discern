@@ -83,11 +83,11 @@ export class DatabaseService {
         return null;
       }
 
-      // Check if cache is recent (within 1 hour)
+      // Check if cache is recent (within 24 hours)
       const cacheAge = Date.now() - analysis.createdAt.getTime();
-      const oneHour = 3600000;
+      const twentyFourHours = 24 * 3600000;
 
-      if (cacheAge > oneHour) {
+      if (cacheAge > twentyFourHours) {
         logger.info('Cache expired', { contentHash });
         return null;
       }

@@ -77,7 +77,27 @@ router.post('/', async (req: Request, res: Response) => {
       try {
         const cached = await database.getCachedAnalysis(content);
         if (cached) {
-          logger.info('Returning cached result');
+          logger.info('Cache hit - saving to current user history');
+
+          // Save cached result to current user's history
+          const saveUserId = userId || (isAdmin ? 'admin' : undefined);
+          if (saveUserId) {
+            try {
+              await database.saveAnalysis(type, content, cached, {
+                demoMode: false,
+                explainability: false,
+                ipAddress: req.ip,
+                userAgent: req.get('user-agent'),
+                domain: undefined, // Domain not extracted for cached results
+                processingTime: 0,
+                userId: saveUserId,
+              });
+              logger.info('Cached analysis saved to user history', { userId: saveUserId });
+            } catch (saveError) {
+              logger.warn('Failed to save cached analysis to user history, continuing');
+            }
+          }
+
           return res.json({
             success: true,
             data: cached,
@@ -133,6 +153,9 @@ router.post('/', async (req: Request, res: Response) => {
     const processingTime = Date.now() - startTime;
 
     // Save to database (optional, continue if fails)
+    // Use userId if present, otherwise 'admin' for admin key users
+    const saveUserId = userId || (isAdmin ? 'admin' : undefined);
+
     try {
       const analysisId = await database.saveAnalysis(type, content, result, {
         demoMode,
@@ -141,7 +164,7 @@ router.post('/', async (req: Request, res: Response) => {
         userAgent: req.get('user-agent'),
         domain,
         processingTime,
-        userId,
+        userId: saveUserId,
       });
       result.id = analysisId;
     } catch (error) {
