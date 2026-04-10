@@ -54,12 +54,6 @@ export default function RootLayout({
                   >
                     About
                   </a>
-                  <a
-                    href="/admin"
-                    className="text-xs sm:text-sm font-medium text-[#1d1d1f] hover:text-[#0071e3] transition-colors duration-200"
-                  >
-                    Statistics
-                  </a>
 
                   {/* User Navigation */}
                   <UserNav />
