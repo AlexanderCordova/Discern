@@ -2,17 +2,51 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 
 export default function SettingsPage() {
   const { data: session, status } = useSession()
   const router = useRouter()
+  const [accessCode, setAccessCode] = useState('')
+  const [hasUnlimitedAccess, setHasUnlimitedAccess] = useState(false)
+  const [saveMessage, setSaveMessage] = useState('')
 
   useEffect(() => {
     if (status === 'unauthenticated') {
       router.push('/analyze')
     }
   }, [status, router])
+
+  useEffect(() => {
+    // Check if access code is already saved
+    const savedCode = localStorage.getItem('discern_access_code')
+    if (savedCode) {
+      setHasUnlimitedAccess(true)
+      setAccessCode(savedCode)
+    }
+  }, [])
+
+  const handleSaveAccessCode = () => {
+    if (!accessCode.trim()) {
+      setSaveMessage('Please enter an access code')
+      setTimeout(() => setSaveMessage(''), 3000)
+      return
+    }
+
+    // Save to localStorage
+    localStorage.setItem('discern_access_code', accessCode.trim())
+    setHasUnlimitedAccess(true)
+    setSaveMessage('✓ Unlimited access activated!')
+    setTimeout(() => setSaveMessage(''), 3000)
+  }
+
+  const handleRemoveAccessCode = () => {
+    localStorage.removeItem('discern_access_code')
+    setAccessCode('')
+    setHasUnlimitedAccess(false)
+    setSaveMessage('Access code removed')
+    setTimeout(() => setSaveMessage(''), 3000)
+  }
 
   if (status === 'loading') {
     return (
@@ -93,9 +127,52 @@ export default function SettingsPage() {
             <div className="flex items-center justify-between p-4 bg-[#f5f5f7] rounded-2xl">
               <div>
                 <p className="font-medium text-[#1d1d1f]">Daily Analysis Limit</p>
-                <p className="text-sm text-[#6e6e73]">Resets every 24 hours</p>
+                <p className="text-sm text-[#6e6e73]">
+                  {hasUnlimitedAccess ? 'Unlimited access active' : 'Resets every 24 hours'}
+                </p>
               </div>
-              <span className="text-2xl font-bold text-[#0071e3]">3 / day</span>
+              <span className="text-2xl font-bold text-[#0071e3]">
+                {hasUnlimitedAccess ? '∞' : '3 / day'}
+              </span>
+            </div>
+
+            {/* Access Code Section */}
+            <div className="p-4 bg-gradient-to-br from-[#0071e3]/5 to-[#0055cc]/5 rounded-2xl border border-[#0071e3]/20">
+              <p className="font-medium text-[#1d1d1f] mb-2">Access Code</p>
+              <p className="text-sm text-[#6e6e73] mb-4">
+                Enter an access code to unlock unlimited analyses
+              </p>
+
+              <div className="flex gap-2">
+                <input
+                  type="password"
+                  placeholder="Enter access code"
+                  value={accessCode}
+                  onChange={(e) => setAccessCode(e.target.value)}
+                  className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-[#0071e3] focus:border-transparent outline-none"
+                />
+                {!hasUnlimitedAccess ? (
+                  <button
+                    onClick={handleSaveAccessCode}
+                    className="px-6 py-2 bg-[#0071e3] text-white font-medium rounded-lg hover:bg-[#0077ed] transition-all"
+                  >
+                    Activate
+                  </button>
+                ) : (
+                  <button
+                    onClick={handleRemoveAccessCode}
+                    className="px-6 py-2 bg-red-600 text-white font-medium rounded-lg hover:bg-red-700 transition-all"
+                  >
+                    Remove
+                  </button>
+                )}
+              </div>
+
+              {saveMessage && (
+                <p className={`text-sm mt-2 ${saveMessage.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+                  {saveMessage}
+                </p>
+              )}
             </div>
 
             <div className="flex items-center justify-between p-4 bg-[#f5f5f7] rounded-2xl">

@@ -11,12 +11,19 @@ const api = axios.create({
   },
 })
 
-// Add interceptor to include user ID in requests if logged in
+// Add interceptor to include user ID and access code in requests
 api.interceptors.request.use(async (config) => {
   const session = await getSession()
   if (session?.user?.id) {
     config.headers['x-user-id'] = session.user.id
   }
+
+  // Add access code if present (for unlimited access)
+  const accessCode = localStorage.getItem('discern_access_code')
+  if (accessCode) {
+    config.headers['x-api-key'] = accessCode
+  }
+
   return config
 })
 
