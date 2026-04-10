@@ -1,5 +1,5 @@
 const API_URL = 'https://discern-backend-tnxh.onrender.com'
-const WEBSITE_URL = 'https://www.usediscern.com'
+const WEBSITE_URL = 'https://discern-frontend.vercel.app'
 
 const app = document.getElementById('app')
 
@@ -187,7 +187,7 @@ function showResult(result) {
   `
 
   document.getElementById('viewFullBtn').addEventListener('click', () => {
-    chrome.tabs.create({ url: `https://www.usediscern.com/analyze?url=${encodeURIComponent(currentUrl)}` })
+    chrome.tabs.create({ url: `${WEBSITE_URL}/analyze?url=${encodeURIComponent(currentUrl)}` })
   })
 
   document.getElementById('retryBtn').addEventListener('click', () => {
