@@ -61,7 +61,7 @@ export default function About() {
             {factors.map((factor, index) => (
               <div key={index} className="bg-white rounded-lg p-6 shadow-sm">
                 <div className="flex items-center gap-3 mb-3">
-                  <span className="text-3xl">  </span>
+                  <span className="text-3xl"></span>
                   <h4 className="font-bold text-gray-900">{factor.name}</h4>
                 </div>
                 <p className="text-sm text-gray-600">{factor.description}</p>
